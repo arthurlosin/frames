@@ -127,16 +127,11 @@ def classic_frame_algorithm(v, c_coef, T, S, n, A, B, iteration=5000, tol=1e-9):
 
     errors = [np.linalg.norm(v)]
     coords = [v_rec]
-    angle = []
 
     for i in range(1, iteration + 1):
         v_rec = mu * (s_v - S @ v_rec) + v_rec
         errors.append(np.linalg.norm(v - v_rec))
         coords.append(v_rec)
-
-        angle.append(np.arccos(
-            np.clip(np.abs(v @ v_rec.conj()) / (np.linalg.norm(v) * np.linalg.norm(v_rec)), a_min=-1.0, a_max=1.0)
-        ))
 
         if errors[-1] < tol:
             limit = np.copy(i)
@@ -145,7 +140,7 @@ def classic_frame_algorithm(v, c_coef, T, S, n, A, B, iteration=5000, tol=1e-9):
     iter_list = np.arange(limit + 1)
 
     return (limit, v_rec, iter_list, np.array(errors) / np.linalg.norm(v),
-            np.array(coords).T, np.array(angle))
+            np.array(coords).T)
 
 
 # Функция для полиномиального ускорения методом сопряженных градиентов
@@ -162,7 +157,6 @@ def conjugate_gradient_acceleration(v, c_coef, T, S, n, iteration=50, tol=1e-9):
     errors = [np.linalg.norm(v)]
     errors_s = [s_norm(v, S)]
     coords = [np.copy(v_rec)]
-    angle = []
 
     for i in range(1, iteration + 1):
         s_p = S @ p
@@ -185,18 +179,14 @@ def conjugate_gradient_acceleration(v, c_coef, T, S, n, iteration=50, tol=1e-9):
         errors_s.append(s_norm(v - v_rec, S))
         coords.append(np.copy(v_rec))
 
-        angle.append(np.arccos(
-            np.clip(np.abs(v @ v_rec.conj()) / (np.linalg.norm(v) * np.linalg.norm(v_rec)), a_min=-1.0, a_max=1.0)
-        ))
-
         if errors[-1] < tol:
             limit = np.copy(i)
             break
 
     iter_list = np.arange(limit + 1)
 
-    return (limit, v_rec, iter_list, np.array(errors_s) / s_norm(v, S), np.array(errors) / np.linalg.norm(v),
-            np.array(coords).T, np.array(angle))
+    return (limit, v_rec, iter_list, np.array(errors_s) / s_norm(v, S),
+            np.array(errors) / np.linalg.norm(v), np.array(coords).T)
 
 
 def main():
@@ -251,8 +241,8 @@ def main():
     print(text)
 
     # Используем итерационные методы для восстановление вектора v
-    lim_1, v_rec_1, x_1, y_1, coords_1, angle_1 = classic_frame_algorithm(v, c_coef, T, S, n, A, B)
-    lim_2, v_rec_2, x_2, y_2_s, y_2, coords_2, angle_2 = conjugate_gradient_acceleration(v, c_coef, T, S, n)
+    lim_1, v_rec_1, x_1, y_1, coords_1 = classic_frame_algorithm(v, c_coef, T, S, n, A, B)
+    lim_2, v_rec_2, x_2, y_2_s, y_2, coords_2 = conjugate_gradient_acceleration(v, c_coef, T, S, n)
 
     sigma = (np.sqrt(B) - np.sqrt(A)) / (np.sqrt(A) + np.sqrt(B))
     err_basic_1 = ((B - A) / (A + B)) ** x_1
@@ -301,15 +291,6 @@ def main():
 
     # Демонстрация проекций на различные оси
     projection_graphs(coords_1, coords_2)
-
-    # Графики зависимости угла расхождения от числа итераций
-    graph(x1=x_1[1:], y1=(180.0 / np.pi * angle_1), label1='',
-          x_title='Число итераций', y_title='Угол расхождения с вектором v',
-          title='Расхождение векторов в классическом методе')
-
-    graph(x1=x_2[1:], y1=(180.0 / np.pi * angle_2), label1='',
-          x_title='Число итераций', y_title='Угол расхождения с вектором v',
-          title='Расхождение векторов в методе сопряженных градиентов')
 
 
 if __name__ == "__main__":
