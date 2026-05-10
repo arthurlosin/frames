@@ -3,21 +3,17 @@ import matplotlib.pyplot as plt
 
 
 # Функция для построения графиков
-def graph(x1, y1, label1, x2=None, y2=None, label2=None, x_title=None, y_title=None, title=None, dotted=False, log=False):
+def graph(x, y1, label1, y2=None, label2=None, y_dot=None, label_dot=None,
+          x_title=None, y_title=None, title=None, log=False):
+
     plt.figure(figsize=(10, 6))
-    plt.plot(x1, y1, 'b-', linewidth=1.5, label=label1)
+    plt.plot(x, y1, 'b-', linewidth=1.5, label=label1)
 
     if (y2 is not None) and (label2 is not None):
-        if x2 is not None:
-            if dotted:
-                plt.plot(x2, y2, 'r--', linewidth=1.5, label=label2)
-            else:
-                plt.plot(x2, y2, 'r-', linewidth=1.5, label=label2)
-        else:
-            if dotted:
-                plt.plot(x1, y2, 'r--', linewidth=1.5, label=label2)
-            else:
-                plt.plot(x1, y2, 'r-', linewidth=1.5, label=label2)
+        plt.plot(x, y2, 'g-', linewidth=1.5, label=label2)
+
+    if (y_dot is not None) and (label_dot is not None):
+        plt.plot(x, y_dot, 'r--', linewidth=1.5, label=label_dot)
 
     if log:
         plt.yscale('log')
@@ -35,75 +31,84 @@ def graph(x1, y1, label1, x2=None, y2=None, label2=None, x_title=None, y_title=N
 
 
 # Функция для построения проекций
-def projection_graphs(coords_1, coords_2):
+def projection_graphs(coords_1, coords_2, proj, label1, label2):
+    if len(proj) != 4 or len(proj[0]) != 3:
+        raise ValueError('Неверный формат проекций')
+
     fig = plt.figure(figsize=(16, 8))
 
     ax1 = fig.add_subplot(2, 3, 1)
-    ax1.plot(np.real(coords_1[0]), np.imag(coords_1[0]), 'b-', linewidth=1.5,
-             label='Классический фреймовый метод')
-    ax1.plot(np.real(coords_2[0]), np.imag(coords_2[0]), 'r-', linewidth=1.5,
-             label='Метод сопряженных градиентов')
+    ax1.plot(np.real(coords_1[proj[0, 0] - 1]), np.imag(coords_1[proj[0, 0] - 1]), 'b-', linewidth=1.5,
+             label=label1)
+    ax1.plot(np.real(coords_2[proj[0, 0] - 1]), np.imag(coords_2[proj[0, 0] - 1]), 'r-', linewidth=1.5,
+             label=label2)
     ax1.set_xlabel('Real')
     ax1.set_ylabel('Imag')
-    ax1.set_title('Проекция на ось O_X1')
+    ax1.set_title(f'Проекция на ось O_X{proj[0, 0]}')
     ax1.legend()
     ax1.grid(True, linestyle='--', alpha=0.6)
 
     ax2 = fig.add_subplot(2, 3, 2)
-    ax2.plot(np.real(coords_1[15]), np.imag(coords_1[15]), 'b-', linewidth=1.5,
-             label='Классический фреймовый метод')
-    ax2.plot(np.real(coords_2[15]), np.imag(coords_2[15]), 'r-', linewidth=1.5,
-             label='Метод сопряженных градиентов')
+    ax2.plot(np.real(coords_1[proj[0, 1] - 1]), np.imag(coords_1[proj[0, 1] - 1]), 'b-', linewidth=1.5,
+             label=label1)
+    ax2.plot(np.real(coords_2[proj[0, 1] - 1]), np.imag(coords_2[proj[0, 1] - 1]), 'r-', linewidth=1.5,
+             label=label2)
     ax2.set_xlabel('Real')
     ax2.set_ylabel('Imag')
-    ax2.set_title('Проекция на ось O_X16')
+    ax2.set_title(f'Проекция на ось O_X{proj[0, 1]}')
     ax2.legend()
     ax2.grid(True, linestyle='--', alpha=0.6)
 
     ax3 = fig.add_subplot(2, 3, 3)
-    ax3.plot(np.real(coords_1[31]), np.imag(coords_1[31]), 'b-', linewidth=1.5,
-             label='Классический фреймовый метод')
-    ax3.plot(np.real(coords_2[31]), np.imag(coords_2[31]), 'r-', linewidth=1.5,
-             label='Метод сопряженных градиентов')
+    ax3.plot(np.real(coords_1[proj[0, 2] - 1]), np.imag(coords_1[proj[0, 2] - 1]),
+             'b-', linewidth=1.5, label=label1)
+    ax3.plot(np.real(coords_2[proj[0, 2] - 1]), np.imag(coords_2[proj[0, 2] - 1]),
+             'r-', linewidth=1.5, label=label2)
     ax3.set_xlabel('Real')
     ax3.set_ylabel('Imag')
-    ax3.set_title('Проекция на ось O_X32')
+    ax3.set_title(f'Проекция на ось O_X{proj[0, 2]}')
     ax3.legend()
     ax3.grid(True, linestyle='--', alpha=0.6)
 
     ax4 = fig.add_subplot(2, 3, 4, projection='3d')
-    ax4.plot(np.real(coords_1[0]), np.real(coords_1[1]), np.real(coords_1[2]),
-             'b-', linewidth=1.5, label='Классический фреймовый метод')
-    ax4.plot(np.real(coords_2[0]), np.real(coords_2[1]), np.real(coords_2[2]),
-             'r-', linewidth=1.5, label='Метод сопряженных градиентов')
-    ax4.set_xlabel('Ось O_X1')
-    ax4.set_ylabel('Ось O_X2')
-    ax4.set_zlabel('Ось O_X3')
-    ax4.set_title('Проекция на O_X1_X2_X3 (real)')
+    ax4.plot(np.real(coords_1[proj[1, 0] - 1]), np.real(coords_1[proj[1, 1] - 1]),
+             np.real(coords_1[proj[1, 2] - 1]),
+             'b-', linewidth=1.5, label=label1)
+    ax4.plot(np.real(coords_2[proj[1, 0] - 1]), np.real(coords_2[proj[1, 1] - 1]),
+             np.real(coords_2[proj[1, 2] - 1]),
+             'r-', linewidth=1.5, label=label2)
+    ax4.set_xlabel(f'Ось O_X{proj[1, 0]}')
+    ax4.set_ylabel(f'Ось O_X{proj[1, 1]}')
+    ax4.set_zlabel(f'Ось O_X{proj[1, 2]}')
+    ax4.set_title(f'Проекция на O_X{proj[1, 0]}_X{proj[1, 1]}_X{proj[1, 2]} (real)')
     ax4.legend()
     ax4.grid(True, linestyle='--', alpha=0.6)
 
     ax5 = fig.add_subplot(2, 3, 5, projection='3d')
-    ax5.plot(np.real(coords_1[9]), np.real(coords_1[14]), np.real(coords_1[19]),
-             'b-', linewidth=1.5, label='Классический фреймовый метод')
-    ax5.plot(np.real(coords_2[9]), np.real(coords_2[14]), np.real(coords_2[19]),
-             'r-', linewidth=1.5, label='Метод сопряженных градиентов')
-    ax5.set_xlabel('Ось O_X10')
-    ax5.set_ylabel('Ось O_X15')
-    ax5.set_zlabel('Ось O_X20')
-    ax5.set_title('Проекция на O_X10_X15_X20 (real)')
+    ax5.plot(np.real(coords_1[proj[2, 0] - 1]), np.real(coords_1[proj[2, 1] - 1]),
+             np.real(coords_1[proj[2, 2] - 1]),
+             'b-', linewidth=1.5, label=label1)
+    ax5.plot(np.real(coords_2[proj[2, 0] - 1]), np.real(coords_2[proj[2, 1] - 1]),
+             np.real(coords_2[proj[2, 2] - 1]),
+             'r-', linewidth=1.5, label=label2)
+    ax5.set_xlabel(f'Ось O_X{proj[2, 0]}')
+    ax5.set_ylabel(f'Ось O_X{proj[2, 1]}')
+    ax5.set_zlabel(f'Ось O_X{proj[2, 2]}')
+    ax5.set_title(f'Проекция на O_X{proj[2, 0]}_X{proj[2, 1]}_X{proj[2, 2]} (real)')
     ax5.legend()
     ax5.grid(True, linestyle='--', alpha=0.6)
 
     ax6 = fig.add_subplot(2, 3, 6, projection='3d')
-    ax6.plot(np.real(coords_1[29]), np.real(coords_1[30]), np.real(coords_1[31]),
-             'b-', linewidth=1.5, label='Классический фреймовый метод')
-    ax6.plot(np.real(coords_2[29]), np.real(coords_2[30]), np.real(coords_2[31]),
-             'r-', linewidth=1.5, label='Метод сопряженных градиентов')
-    ax6.set_xlabel('Ось O_X30')
-    ax6.set_ylabel('Ось O_X31')
-    ax6.set_zlabel('Ось O_X32')
-    ax6.set_title('Проекция на O_X30_X31_X32 (real)')
+    ax6.plot(np.real(coords_1[proj[3, 0] - 1]), np.real(coords_1[proj[3, 1] - 1]),
+             np.real(coords_1[proj[3, 2] - 1]),
+             'b-', linewidth=1.5, label=label1)
+    ax6.plot(np.real(coords_2[proj[3, 0] - 1]), np.real(coords_2[proj[3, 1] - 1]),
+             np.real(coords_2[proj[3, 2] - 1]),
+             'r-', linewidth=1.5, label=label2)
+    ax6.set_xlabel(f'Ось O_X{proj[3, 0]}')
+    ax6.set_ylabel(f'Ось O_X{proj[3, 1]}')
+    ax6.set_zlabel(f'Ось O_X{proj[3, 2]}')
+    ax6.set_title(f'Проекция на O_X{proj[3, 0]}_X{proj[3, 1]}_X{proj[3, 2]} (real)')
     ax6.legend()
     ax6.grid(True, linestyle='--', alpha=0.6)
 
@@ -140,7 +145,7 @@ def classic_frame_algorithm(v, c_coef, T, S, n, A, B, iteration=5000, tol=1e-9):
     iter_list = np.arange(limit + 1)
 
     return (limit, v_rec, iter_list, np.array(errors) / np.linalg.norm(v),
-            np.array(coords).T)
+            np.array(coords))
 
 
 # Функция для полиномиального ускорения методом сопряженных градиентов
@@ -186,7 +191,42 @@ def conjugate_gradient_acceleration(v, c_coef, T, S, n, iteration=50, tol=1e-9):
     iter_list = np.arange(limit + 1)
 
     return (limit, v_rec, iter_list, np.array(errors_s) / s_norm(v, S),
-            np.array(errors) / np.linalg.norm(v), np.array(coords).T)
+            np.array(errors) / np.linalg.norm(v), np.array(coords))
+
+
+def conjugate_gradient_acceleration_another(v, c_coef, T, S, n, iteration=50, tol=1e-9):
+    limit = iteration
+    v_rec = np.zeros(n, dtype=complex)
+
+    s_v = T @ c_coef
+    r = np.copy(s_v)
+    p = np.copy(s_v)
+    lya = (r @ p.conj()) / (p @ (S @ p).conj())
+
+    errors = [np.linalg.norm(v)]
+    errors_s = [s_norm(v, S)]
+    coords = [np.copy(v_rec)]
+
+    for i in range(1, iteration + 1):
+        s_p = S @ p
+        v_rec += lya * p
+        r -= lya * s_p
+
+        p = r - (r @ s_p.conj()) / (p @ s_p.conj()) * p
+        lya = (r @ p.conj()) / (p @ (S @ p).conj())
+
+        errors.append(np.linalg.norm(v - v_rec))
+        errors_s.append(s_norm(v - v_rec, S))
+        coords.append(np.copy(v_rec))
+
+        if errors[-1] < tol:
+            limit = np.copy(i)
+            break
+
+    iter_list = np.arange(limit + 1)
+
+    return (limit, v_rec, iter_list, np.array(errors_s) / s_norm(v, S),
+            np.array(errors) / np.linalg.norm(v), np.array(coords))
 
 
 def main():
@@ -243,10 +283,11 @@ def main():
     # Используем итерационные методы для восстановление вектора v
     lim_1, v_rec_1, x_1, y_1, coords_1 = classic_frame_algorithm(v, c_coef, T, S, n, A, B)
     lim_2, v_rec_2, x_2, y_2_s, y_2, coords_2 = conjugate_gradient_acceleration(v, c_coef, T, S, n)
+    lim_3, v_rec_3, x_3, y_3_s, y_3, coords_3 = conjugate_gradient_acceleration_another(v, c_coef, T, S, n)
 
     sigma = (np.sqrt(B) - np.sqrt(A)) / (np.sqrt(A) + np.sqrt(B))
-    err_basic_1 = ((B - A) / (A + B)) ** x_1
-    err_basic_2_s = 2 * sigma ** x_2 / (1 + sigma ** (2 * x_2))
+    err_est_1 = ((B - A) / (A + B)) ** x_1
+    err_est_2_s = 2 * sigma ** x_2 / (1 + sigma ** (2 * x_2))
 
     print('\nИзначальный вектор v: ')
     print(v)
@@ -264,33 +305,53 @@ def main():
     if lim_2 is not None:
         print(f'Достаточно {lim_2} итераций')
 
+    print('\nВостановленный вектор v (другая версия метода сопряженных градиентов): ')
+    print(np.round(v_rec_3, decimals=3))
+    if lim_3 is not None:
+        print(f'Достаточно {lim_3} итераций')
+
     # График зависимости ошибки приближения классического фреймового алгоритма от числа итераций
-    graph(x1=x_1, y1=(100 * y_1), label1='Ошибка классического метода',
-          y2=(100 * err_basic_1), label2='Оценка погрешности',
+    graph(x=x_1, y1=(100 * y_1), label1='Ошибка классического метода',
+          y_dot=(100 * err_est_1), label_dot='Оценка погрешности',
           x_title='Число итераций', y_title='Погрешность, %',
-          title='Классический фреймовый алгоритм', dotted=True)
+          title='Классический фреймовый алгоритм')
 
     # Графики зависимости ошибки приближения метода сопряженных градиентов от числа итераций
-    graph(x1=x_2, y1=(100 * y_2), label1='',
+    graph(x=x_2, y1=(100 * y_2), label1='Ошибка метода сопряженных градиентов',
+          y2=(100 * y_3[:len(y_2)]), label2='Ошибка метода сопряженных градиентов (другая версия)',
           x_title='Число итераций', y_title='Погрешность, %',
           title='Ошибка метода сопряженных градиентов')
 
-    graph(x1=x_2, y1=(100 * y_2_s), label1='Ошибка метода сопряженных градиентов',
-          y2=(100 * err_basic_2_s), label2='Оценка погрешности',
+    graph(x=x_2, y1=(100 * y_2_s), label1='Ошибка метода сопряженных градиентов',
+          y2=(100 * y_3_s[:len(y_2)]), label2='Ошибка метода сопряженных градиентов (другая версия)',
+          y_dot=(100 * err_est_2_s), label_dot='Оценка погрешности',
           x_title='Число итераций', y_title='Погрешность, %',
-          title='Полиноминальное ускорение (S-норма)', dotted=True)
+          title='Полиноминальное ускорение (S-норма)')
 
     # Логарифмические зависимости ошибок от числа итераций
-    graph(x1=x_1, y1=y_1, label1='',
+    graph(x=x_1, y1=y_1, label1='Ошибка классического метода',
+          y_dot=err_est_1, label_dot='Оценка погрешности',
           x_title='Число итераций', y_title='Погрешность',
           title='Ошибка классического метода (логарифмическая шкала)', log=True)
 
-    graph(x1=x_2, y1=y_2, label1='',
+    graph(x=x_2, y1=y_2, label1='Ошибка метода сопряженных градиентов',
+          y2=y_3[:len(y_2)], label2='Ошибка метода сопряженных градиентов (другая версия)',
           x_title='Число итераций', y_title='Погрешность',
           title='Ошибка метода сопряженных градиентов (логарифмическая шкала)', log=True)
 
+    graph(x=x_2, y1=y_2_s, label1='Ошибка метода сопряженных градиентов',
+          y2=y_3_s[:len(y_2)], label2='Ошибка метода сопряженных градиентов (другая версия)',
+          y_dot=err_est_2_s, label_dot='Оценка погрешности',
+          x_title='Число итераций', y_title='Погрешность, %',
+          title='Ошибка метода сопряженных градиентов (логарифмическая шкала S-нормы)', log=True)
+
     # Демонстрация проекций на различные оси
-    projection_graphs(coords_1, coords_2)
+    projections = np.array([[1, 16, 32], [1, 2, 3], [10, 15, 20], [30, 31, 32]])
+
+    projection_graphs(coords_1.T, coords_2.T, projections,
+                      label1='Классический фреймовый метод', label2='Метод сопряженных градиентов')
+    projection_graphs(coords_2.T, coords_3.T, projections,
+                      label1='Метод сопряженных градиентов', label2='Метод сопряженных градиентов (другая версия)')
 
 
 if __name__ == "__main__":
