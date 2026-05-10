@@ -124,13 +124,17 @@ def s_norm(x, S):
 
 # Функция для классического фреймового алгоритма
 def classic_frame_algorithm(v, c_coef, T, S, n, A, B, iteration=5000, tol=1e-9):
-    limit = iteration
+    limit = None
+
+    # v_rec - приближаемый к v вектор
     v_rec = np.zeros(n, dtype=complex)
 
     s_v = T @ c_coef
     mu = 2 / (A + B)
 
+    # errors - массив ошибок
     errors = [np.linalg.norm(v)]
+    # coords - массив, состоящий из всех положений приближаемого вектора на каждой итерации
     coords = [v_rec]
 
     for i in range(1, iteration + 1):
@@ -142,7 +146,10 @@ def classic_frame_algorithm(v, c_coef, T, S, n, A, B, iteration=5000, tol=1e-9):
             limit = np.copy(i)
             break
 
-    iter_list = np.arange(limit + 1)
+    if limit is not None:
+        iter_list = np.arange(limit + 1)
+    else:
+        iter_list = np.arange(iteration + 1)
 
     return (limit, v_rec, iter_list, np.array(errors) / np.linalg.norm(v),
             np.array(coords))
@@ -150,8 +157,10 @@ def classic_frame_algorithm(v, c_coef, T, S, n, A, B, iteration=5000, tol=1e-9):
 
 # Функция для полиномиального ускорения методом сопряженных градиентов
 def conjugate_gradient_acceleration(v, c_coef, T, S, n, iteration=50, tol=1e-9):
-    limit = iteration
+    limit = None
     p_prev = np.zeros(n, dtype=complex)
+
+    # v_rec - приближаемый к v вектор
     v_rec = np.zeros(n, dtype=complex)
 
     s_v = T @ c_coef
@@ -159,8 +168,13 @@ def conjugate_gradient_acceleration(v, c_coef, T, S, n, iteration=50, tol=1e-9):
     p = np.copy(s_v)
     lya = (r @ p.conj()) / (p @ (S @ p).conj())
 
+    # errors - массив ошибок
     errors = [np.linalg.norm(v)]
+
+    # errors_s - массив s-нормы ошибок
     errors_s = [s_norm(v, S)]
+
+    # coords - массив, состоящий из всех положений приближаемого вектора на каждой итерации
     coords = [np.copy(v_rec)]
 
     for i in range(1, iteration + 1):
@@ -188,14 +202,20 @@ def conjugate_gradient_acceleration(v, c_coef, T, S, n, iteration=50, tol=1e-9):
             limit = np.copy(i)
             break
 
-    iter_list = np.arange(limit + 1)
+    if limit is not None:
+        iter_list = np.arange(limit + 1)
+    else:
+        iter_list = np.arange(iteration + 1)
 
     return (limit, v_rec, iter_list, np.array(errors_s) / s_norm(v, S),
             np.array(errors) / np.linalg.norm(v), np.array(coords))
 
 
+# Другая версия функции для полиномиального ускорения методом сопряженных градиентов
 def conjugate_gradient_acceleration_another(v, c_coef, T, S, n, iteration=50, tol=1e-9):
-    limit = iteration
+    limit = None
+
+    # v_rec - приближаемый к v вектор
     v_rec = np.zeros(n, dtype=complex)
 
     s_v = T @ c_coef
@@ -203,8 +223,13 @@ def conjugate_gradient_acceleration_another(v, c_coef, T, S, n, iteration=50, to
     p = np.copy(s_v)
     lya = (r @ p.conj()) / (p @ (S @ p).conj())
 
+    # errors - массив ошибок
     errors = [np.linalg.norm(v)]
+
+    # errors_s - массив s-нормы ошибок
     errors_s = [s_norm(v, S)]
+
+    # coords - массив, состоящий из всех положений приближаемого вектора на каждой итерации
     coords = [np.copy(v_rec)]
 
     for i in range(1, iteration + 1):
@@ -223,7 +248,10 @@ def conjugate_gradient_acceleration_another(v, c_coef, T, S, n, iteration=50, to
             limit = np.copy(i)
             break
 
-    iter_list = np.arange(limit + 1)
+    if limit is not None:
+        iter_list = np.arange(limit + 1)
+    else:
+        iter_list = np.arange(iteration + 1)
 
     return (limit, v_rec, iter_list, np.array(errors_s) / s_norm(v, S),
             np.array(errors) / np.linalg.norm(v), np.array(coords))
@@ -269,14 +297,15 @@ def main():
     print('Вектор v можно разложить по фрейму: ')
     summand = [f"{np.round(g_coef[i], decimals=3)} * f_{i + 1}" for i in range(m)]
 
+    # Вывод разложения вектора v по фрейму через скалярные произведения с двойственным фреймом
     lines = []
     for i in range(0, m, 3):
-        lines.append(" + ".join(summand[i:(i + 3)]))
+        lines.append(' + '.join(summand[i:(i + 3)]))
 
-    text = f"v = {lines[0]} +\n"
+    text = f'v = {lines[0]} +\n'
     for line in lines[1:-1]:
-        text += f"    {line} +\n"
-    text += f"    {lines[-1]}"
+        text += f'    {line} +\n'
+    text += f'    {lines[-1]}'
 
     print(text)
 
@@ -285,6 +314,7 @@ def main():
     lim_2, v_rec_2, x_2, y_2_s, y_2, coords_2 = conjugate_gradient_acceleration(v, c_coef, T, S, n)
     lim_3, v_rec_3, x_3, y_3_s, y_3, coords_3 = conjugate_gradient_acceleration_another(v, c_coef, T, S, n)
 
+    # Рассчет оценки погрешности
     sigma = (np.sqrt(B) - np.sqrt(A)) / (np.sqrt(A) + np.sqrt(B))
     err_est_1 = ((B - A) / (A + B)) ** x_1
     err_est_2_s = 2 * sigma ** x_2 / (1 + sigma ** (2 * x_2))
@@ -292,7 +322,7 @@ def main():
     print('\nИзначальный вектор v: ')
     print(v)
 
-    print('\nВостановленный вектор v (через обратную матрицу S): ')
+    print('\nВостановленный вектор v (через обратную матрицу S^-1): ')
     print(np.round(T @ g_coef, decimals=3))
 
     print('\nВостановленный вектор v (классический фреймовый алгоритм): ')
@@ -316,7 +346,7 @@ def main():
           x_title='Число итераций', y_title='Погрешность, %',
           title='Классический фреймовый алгоритм')
 
-    # Графики зависимости ошибки приближения метода сопряженных градиентов от числа итераций
+    # Графики зависимостей ошибок приближения методов сопряженных градиентов от числа итераций
     graph(x=x_2, y1=(100 * y_2), label1='Ошибка метода сопряженных градиентов',
           y2=(100 * y_3[:len(y_2)]), label2='Ошибка метода сопряженных градиентов (другая версия)',
           x_title='Число итераций', y_title='Погрешность, %',
