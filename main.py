@@ -148,7 +148,7 @@ def classic_frame_algorithm(v, c_coef, T, S, n, A, B, iteration=5000, tol=1e-9):
             np.array(coords).T, np.array(angle))
 
 
-# Функция для полиномиального ускорения сопряженный градиентов
+# Функция для полиномиального ускорения методом сопряженных градиентов
 def conjugate_gradient_acceleration(v, c_coef, T, S, n, iteration=50, tol=1e-9):
     limit = iteration
     p_prev = np.zeros(n, dtype=complex)
@@ -215,8 +215,8 @@ def main():
     # v - вектор [1, 2, ..., n]
     v = np.arange(1, n + 1, dtype=float)
 
-    # Рассчет размерности фрейма (и доказательство)
-    print(f'Rank(T) = {np.linalg.matrix_rank(T)}\n')
+    # Рассчет размерности фрейма (и доказательство задания №2.1)
+    print(f'\nRank(T) = {np.linalg.matrix_rank(T)}\n')
 
     # - фреймовый оператор
     S = T @ T.conj().T
@@ -235,8 +235,20 @@ def main():
 
     # Набор скалярных произведений векторов канонически двойственного фрейма и вектора v
     g_coef = v @ (np.linalg.inv(S) @ T).conj()
-    print('Коэффициенты разложения вектора v: ')
-    print(np.round(g_coef, decimals=3))
+
+    print('Вектор v можно разложить по фрейму: ')
+    summand = [f"{np.round(g_coef[i], decimals=3)} * f_{i + 1}" for i in range(m)]
+
+    lines = []
+    for i in range(0, m, 3):
+        lines.append(" + ".join(summand[i:(i + 3)]))
+
+    text = f"v = {lines[0]} +\n"
+    for line in lines[1:-1]:
+        text += f"    {line} +\n"
+    text += f"    {lines[-1]}"
+
+    print(text)
 
     # Используем итерационные методы для восстановление вектора v
     lim_1, v_rec_1, x_1, y_1, coords_1, angle_1 = classic_frame_algorithm(v, c_coef, T, S, n, A, B)
@@ -281,11 +293,11 @@ def main():
     # Логарифмические зависимости ошибок от числа итераций
     graph(x1=x_1, y1=y_1, label1='',
           x_title='Число итераций', y_title='Погрешность',
-          title='Ошибка классического метода', log=True)
+          title='Ошибка классического метода (логарифмическая шкала)', log=True)
 
     graph(x1=x_2, y1=y_2, label1='',
           x_title='Число итераций', y_title='Погрешность',
-          title='Ошибка метода сопряженных градиентов', log=True)
+          title='Ошибка метода сопряженных градиентов (логарифмическая шкала)', log=True)
 
     # Демонстрация проекций на различные оси
     projection_graphs(coords_1, coords_2)
